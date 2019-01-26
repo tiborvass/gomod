@@ -37,9 +37,7 @@ func main() {
 	log.SetFlags(0)
 
 	args := flag.Args()
-	if len(args) < 1 {
-		args = []string{"mod"}
-	}
+	args = append([]string{"mod"}, args...)
 
 	if modload.MustUseModules {
 		// If running with modules force-enabled, change get now to change help message.
