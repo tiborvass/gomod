@@ -24,7 +24,7 @@ func ParseVendorConf(file string, data []byte) (*modfile.File, error) {
 			if len(f) >= 3 {
 				vNew := module.Version{Path: repoPathToImportPath(f[2]), Version: f[1]}
 				mf.Replace = append(mf.Replace, &modfile.Replace{Old: v, New: vNew})
-				v.Version = "latest"
+				v.Version = "none"
 			} else {
 				v.Version = f[1]
 			}
