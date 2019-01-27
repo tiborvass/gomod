@@ -1,9 +1,9 @@
-# gomod
+# gomod fork to convert vendor.conf to go.mod
 
 ## Why?
 
 This is a standalone temporary fork of the [go mod](https://golang.org/cmd/go/#hdr-Module_maintenance) command,
-that has full support for [vndr](https://github.com/LK4D4/vndr)'s vendor.conf format.
+that has full support for [vndr](https://github.com/LK4D4/vndr)'s vendor.conf format. The only use is to convert vendor.conf to go.mod.
 
 As soon as https://github.com/golang/go/issues/25556 is resolved, I'll archive this repository.
 
