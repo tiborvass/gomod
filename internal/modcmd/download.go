@@ -5,13 +5,15 @@
 package modcmd
 
 import (
+	"github.com/tiborvass/gomod/internal/cfg"
+	"encoding/json"
+	"os"
+
 	"github.com/tiborvass/gomod/internal/base"
 	"github.com/tiborvass/gomod/internal/modfetch"
 	"github.com/tiborvass/gomod/internal/modload"
 	"github.com/tiborvass/gomod/internal/module"
 	"github.com/tiborvass/gomod/internal/par"
-	"encoding/json"
-	"os"
 )
 
 var cmdDownload = &base.Command{
@@ -66,6 +68,13 @@ type moduleJSON struct {
 }
 
 func runDownload(cmd *base.Command, args []string) {
+	// Check whether modules are enabled and whether we're in a module.
+	if cfg.Getenv("GO111MODULE") == "off" {
+		base.Fatalf("go: modules disabled by GO111MODULE=off; see 'go help modules'")
+	}
+	if !modload.HasModRoot() && len(args) == 0 {
+		base.Fatalf("go mod download: no modules specified (see 'go help mod download')")
+	}
 	if len(args) == 0 {
 		args = []string{"all"}
 	}
