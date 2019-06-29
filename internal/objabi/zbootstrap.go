@@ -11,6 +11,6 @@ const defaultGOMIPS64 = `hardfloat`
 const defaultGOOS = runtime.GOOS
 const defaultGOARCH = runtime.GOARCH
 const defaultGO_EXTLINK_ENABLED = ``
-const version = `devel +b398c252f0 Sat Jan 26 01:33:23 2019 +0000`
+const version = `go1.12.6`
 const stackGuardMultiplierDefault = 1
 const goexperiment = ``

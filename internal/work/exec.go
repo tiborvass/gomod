@@ -215,6 +215,7 @@ func (b *Builder) buildActionID(a *Action) cache.ActionID {
 	if p.Internal.CoverMode != "" {
 		fmt.Fprintf(h, "cover %q %q\n", p.Internal.CoverMode, b.toolID("cover"))
 	}
+	fmt.Fprintf(h, "modinfo %q\n", p.Internal.BuildInfo)
 
 	// Configuration specific to compiler toolchain.
 	switch cfg.BuildToolchainName {
@@ -656,7 +657,7 @@ func (b *Builder) build(a *Action) (err error) {
 	if len(out) > 0 {
 		output := b.processOutput(out)
 		if p.Module != nil && !allowedVersion(p.Module.GoVersion) {
-			output += "note: module requires Go " + p.Module.GoVersion
+			output += "note: module requires Go " + p.Module.GoVersion + "\n"
 		}
 		b.showOutput(a, a.Package.Dir, a.Package.Desc(), output)
 		if err != nil {

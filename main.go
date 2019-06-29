@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:generate ./mkalldocs.sh
-
 package main
 
 import (
@@ -15,21 +13,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tiborvass/gomod/help"
 	"github.com/tiborvass/gomod/internal/base"
 	"github.com/tiborvass/gomod/internal/cfg"
 	"github.com/tiborvass/gomod/internal/envcmd"
 	"github.com/tiborvass/gomod/internal/get"
+	"github.com/tiborvass/gomod/internal/help"
 	"github.com/tiborvass/gomod/internal/modcmd"
 	"github.com/tiborvass/gomod/internal/modget"
 	"github.com/tiborvass/gomod/internal/modload"
 )
-
-func init() {
-	base.Go.Commands = []*base.Command{
-		modcmd.CmdMod,
-	}
-}
 
 func main() {
 	flag.Usage = base.Usage
@@ -37,14 +29,29 @@ func main() {
 	log.SetFlags(0)
 
 	args := flag.Args()
-	args = append([]string{"mod"}, args...)
+	if len(args) < 1 {
+		base.Usage()
+	}
 
 	if modload.MustUseModules {
 		// If running with modules force-enabled, change get now to change help message.
 		*get.CmdGet = *modget.CmdGet
 	}
 
+	if args[0] == "get" || args[0] == "help" {
+		// Replace get with module-aware get if appropriate.
+		// Note that if MustUseModules is true, this happened already above,
+		// but no harm in doing it again.
+		if modload.Init(); modload.Enabled() {
+			*get.CmdGet = *modget.CmdGet
+		}
+	}
+
 	cfg.CmdName = args[0] // for error messages
+	if args[0] == "help" {
+		help.Help(os.Stdout, args[1:])
+		return
+	}
 
 	// Diagnose common mistake: GOPATH==GOROOT.
 	// This setting is equivalent to not setting GOPATH at all,
@@ -89,10 +96,10 @@ func main() {
 				flag = flag[:i]
 			}
 			switch flag {
-			case "-sync":
-				fmt.Fprintf(os.Stderr, "go: go mod -sync is now go mod tidy\n")
+			case "-sync", "-fix":
+				fmt.Fprintf(os.Stderr, "go: go mod %s is now go mod tidy\n", flag)
 				os.Exit(2)
-			case "-init", "-fix", "-graph", "-vendor", "-verify":
+			case "-init", "-graph", "-vendor", "-verify":
 				fmt.Fprintf(os.Stderr, "go: go mod %s is now go mod %s\n", flag, flag[1:])
 				os.Exit(2)
 			case "-fmt", "-json", "-module", "-require", "-droprequire", "-replace", "-dropreplace", "-exclude", "-dropexclude":
@@ -106,15 +113,6 @@ func main() {
 	case "verify":
 		fmt.Fprintf(os.Stderr, "go: vgo verify is now go mod verify\n")
 		os.Exit(2)
-	}
-
-	if args[0] == "get" {
-		// Replace get with module-aware get if appropriate.
-		// Note that if MustUseModules is true, this happened already above,
-		// but no harm in doing it again.
-		if modload.Init(); modload.Enabled() {
-			*get.CmdGet = *modget.CmdGet
-		}
 	}
 
 	// Set environment (GOOS, GOARCH, etc) explicitly.
@@ -146,7 +144,7 @@ BigCmdLoop:
 				}
 				if args[0] == "help" {
 					// Accept 'go mod help' and 'go mod help foo' for 'go help mod' and 'go help mod foo'.
-					help.Help(append(strings.Split(cfg.CmdName, " "), args[1:]...))
+					help.Help(os.Stdout, append(strings.Split(cfg.CmdName, " "), args[1:]...))
 					return
 				}
 				cfg.CmdName += " " + args[0]
@@ -177,11 +175,14 @@ BigCmdLoop:
 	}
 }
 
-func init() {
-	base.Usage = mainUsage
-}
-
 func mainUsage() {
 	help.PrintUsage(os.Stderr, base.Go)
 	os.Exit(2)
+}
+
+func init() {
+	base.Usage = mainUsage
+	base.Go.Commands = []*base.Command{
+		modcmd.CmdMod,
+	}
 }
