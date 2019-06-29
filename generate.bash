@@ -24,6 +24,8 @@ EOF
 gofmt -w -s main.go
 goimports -w main.go
 
+find . -name '*_test.go' -exec rm {} \;
+
 for x in '"cmd/go/internal/' '"cmd/internal/' '"internal/'; do for f in $(find . -name '*.go' -exec grep -H "$x" {} \; | cut -d: -f1 | sort -u); do sed -i'' 's,'"$x"',"github.com/tiborvass/gomod/internal/,g' $f; done; done
 for f in $(find . -name '*.go' -exec grep -H 'strings.ReplaceAll' {} \; | cut -d: -f1 | sort -u ); do sed -i'' 's,strings.ReplaceAll,mystrings.ReplaceAll,g' $f; goimports -w $f; done
 
