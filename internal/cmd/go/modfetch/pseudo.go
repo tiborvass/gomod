@@ -175,6 +175,7 @@ func PseudoVersionBase(v string) (string, error) {
 		return "", nil
 
 	case "-0":
+		return "", nil
 		// vX.Y.(Z+1)-0.yyyymmddhhmmss-abcdef123456 → vX.Y.Z
 		// vX.Y.(Z+1)-0.yyyymmddhhmmss-abcdef123456+incompatible → vX.Y.Z+incompatible
 		base = strings.TrimSuffix(base, pre)

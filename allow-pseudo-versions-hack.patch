@@ -1,0 +1,33 @@
+commit 27ce380e939cf8f1c517b15ce2bf357737aa59ad
+Author: Tibor Vass <teabee89@gmail.com>
+Date:   Thu Apr 9 15:33:43 2020 -0700
+
+    Allow pseudo-versions hack
+    
+    Signed-off-by: Tibor Vass <teabee89@gmail.com>
+
+diff --git a/internal/cmd/go/modfetch/coderepo.go b/internal/cmd/go/modfetch/coderepo.go
+index 3513f7d..45db19b 100644
+--- a/internal/cmd/go/modfetch/coderepo.go
++++ b/internal/cmd/go/modfetch/coderepo.go
+@@ -593,7 +593,7 @@ func (r *codeRepo) validatePseudoVersion(info *codehost.RevInfo, version string)
+ 	}
+ 	if base == "" {
+ 		if r.pseudoMajor == "" && semver.Major(version) == "v1" {
+-			return fmt.Errorf("major version without preceding tag must be v0, not v1")
++			//return fmt.Errorf("major version without preceding tag must be v0, not v1")
+ 		}
+ 		return nil
+ 	} else {
+diff --git a/internal/cmd/go/modfetch/pseudo.go b/internal/cmd/go/modfetch/pseudo.go
+index 37479d4..1440cde 100644
+--- a/internal/cmd/go/modfetch/pseudo.go
++++ b/internal/cmd/go/modfetch/pseudo.go
+@@ -175,6 +175,7 @@ func PseudoVersionBase(v string) (string, error) {
+ 		return "", nil
+ 
+ 	case "-0":
++		return "", nil
+ 		// vX.Y.(Z+1)-0.yyyymmddhhmmss-abcdef123456 → vX.Y.Z
+ 		// vX.Y.(Z+1)-0.yyyymmddhhmmss-abcdef123456+incompatible → vX.Y.Z+incompatible
+ 		base = strings.TrimSuffix(base, pre)

@@ -593,7 +593,7 @@ func (r *codeRepo) validatePseudoVersion(info *codehost.RevInfo, version string)
 	}
 	if base == "" {
 		if r.pseudoMajor == "" && semver.Major(version) == "v1" {
-			return fmt.Errorf("major version without preceding tag must be v0, not v1")
+			//return fmt.Errorf("major version without preceding tag must be v0, not v1")
 		}
 		return nil
 	} else {

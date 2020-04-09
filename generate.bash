@@ -30,6 +30,7 @@ find . -name '*_test.go' -exec rm {} \;
 for x in 'cmd/go/internal' 'cmd/internal' 'internal'; do for f in $(find . -name '*.go' -exec grep -H "\"$x/" {} \; | cut -d: -f1 | sort -u); do sed -i'' 's,'"\"$x/"',"github.com/tiborvass/gomod/internal/'${x%internal}',g' $f; done; done
 
 find . -name '*.go' -exec sed -E -i'' 's/\bgo.mod\b/notgo.mod/g' {} \;
+git apply allow-pseudo-versions-hack.patch
 
 go list -json . | jq -r .Deps[] | grep github.com/tiborvass/gomod | sed 's,^github.com/tiborvass/gomod/internal/,,g' | sort -u > /tmp/1
 ( cd internal && find . -type d -not -name internal -not -name cmd -not -name go | cut -d/ -f2- | sort -u > /tmp/2 )
