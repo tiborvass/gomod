@@ -13,14 +13,14 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tiborvass/gomod/internal/base"
-	"github.com/tiborvass/gomod/internal/cfg"
-	"github.com/tiborvass/gomod/internal/envcmd"
-	"github.com/tiborvass/gomod/internal/get"
-	"github.com/tiborvass/gomod/internal/help"
-	"github.com/tiborvass/gomod/internal/modcmd"
-	"github.com/tiborvass/gomod/internal/modget"
-	"github.com/tiborvass/gomod/internal/modload"
+	"github.com/tiborvass/gomod/internal/cmd/go/base"
+	"github.com/tiborvass/gomod/internal/cmd/go/cfg"
+	"github.com/tiborvass/gomod/internal/cmd/go/envcmd"
+	"github.com/tiborvass/gomod/internal/cmd/go/get"
+	"github.com/tiborvass/gomod/internal/cmd/go/help"
+	"github.com/tiborvass/gomod/internal/cmd/go/modcmd"
+	"github.com/tiborvass/gomod/internal/cmd/go/modget"
+	"github.com/tiborvass/gomod/internal/cmd/go/modload"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if args[0] == "get" || args[0] == "help" {
-		if modload.Init(); !modload.Enabled() {
+		if !modload.WillBeEnabled() {
 			// Replace module-aware get with GOPATH get if appropriate.
 			*modget.CmdGet = *get.CmdGet
 		}

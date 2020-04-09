@@ -1,0 +1,5 @@
+module github.com/tiborvass/gomod
+
+go 1.14
+
+require golang.org/x/mod v0.2.0
