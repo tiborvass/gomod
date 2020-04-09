@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// go mod edit
+// notgo.mod edit
 
 package modcmd
 
@@ -25,30 +25,30 @@ import (
 )
 
 var cmdEdit = &base.Command{
-	UsageLine: "go mod edit [editing flags] [go.mod]",
-	Short:     "edit go.mod from tools or scripts",
+	UsageLine: "notgo.mod edit [editing flags] [notgo.mod]",
+	Short:     "edit notgo.mod from tools or scripts",
 	Long: `
-Edit provides a command-line interface for editing go.mod,
-for use primarily by tools or scripts. It reads only go.mod;
+Edit provides a command-line interface for editing notgo.mod,
+for use primarily by tools or scripts. It reads only notgo.mod;
 it does not look up information about the modules involved.
-By default, edit reads and writes the go.mod file of the main module,
+By default, edit reads and writes the notgo.mod file of the main module,
 but a different target file can be specified after the editing flags.
 
 The editing flags specify a sequence of editing operations.
 
-The -fmt flag reformats the go.mod file without making other changes.
+The -fmt flag reformats the notgo.mod file without making other changes.
 This reformatting is also implied by any other modifications that use or
-rewrite the go.mod file. The only time this flag is needed is if no other
-flags are specified, as in 'go mod edit -fmt'.
+rewrite the notgo.mod file. The only time this flag is needed is if no other
+flags are specified, as in 'notgo.mod edit -fmt'.
 
-The -module flag changes the module's path (the go.mod file's module line).
+The -module flag changes the module's path (the notgo.mod file's module line).
 
 The -require=path@version and -droprequire=path flags
 add and drop a requirement on the given module path and version.
 Note that -require overrides any existing requirements on path.
 These flags are mainly for tools that understand the module graph.
 Users should prefer 'go get path@version' or 'go get path@none',
-which make other go.mod adjustments as needed to satisfy
+which make other notgo.mod adjustments as needed to satisfy
 constraints imposed by other modules.
 
 The -exclude=path@version and -dropexclude=path@version flags
@@ -73,11 +73,11 @@ are applied in the order given.
 
 The -go=version flag sets the expected Go language version.
 
-The -print flag prints the final go.mod in its text format instead of
-writing it back to go.mod.
+The -print flag prints the final notgo.mod in its text format instead of
+writing it back to notgo.mod.
 
-The -json flag prints the final go.mod file in JSON format instead of
-writing it back to go.mod. The JSON output corresponds to these Go types:
+The -json flag prints the final notgo.mod file in JSON format instead of
+writing it back to notgo.mod. The JSON output corresponds to these Go types:
 
 	type Module struct {
 		Path string
@@ -103,13 +103,13 @@ writing it back to go.mod. The JSON output corresponds to these Go types:
 		New Module
 	}
 
-Note that this only describes the go.mod file itself, not other modules
+Note that this only describes the notgo.mod file itself, not other modules
 referred to indirectly. For the full set of modules available to a build,
 use 'go list -m -json all'.
 
-For example, a tool can obtain the go.mod as a data structure by
-parsing the output of 'go mod edit -json' and can then make changes
-by invoking 'go mod edit' with -require, -exclude, and so on.
+For example, a tool can obtain the notgo.mod as a data structure by
+parsing the output of 'notgo.mod edit -json' and can then make changes
+by invoking 'notgo.mod edit' with -require, -exclude, and so on.
 	`,
 }
 
@@ -151,15 +151,15 @@ func runEdit(cmd *base.Command, args []string) {
 			len(edits) > 0
 
 	if !anyFlags {
-		base.Fatalf("go mod edit: no flags specified (see 'go help mod edit').")
+		base.Fatalf("notgo.mod edit: no flags specified (see 'go help mod edit').")
 	}
 
 	if *editJSON && *editPrint {
-		base.Fatalf("go mod edit: cannot use both -json and -print")
+		base.Fatalf("notgo.mod edit: cannot use both -json and -print")
 	}
 
 	if len(args) > 1 {
-		base.Fatalf("go mod edit: too many arguments")
+		base.Fatalf("notgo.mod edit: too many arguments")
 	}
 	var gomod string
 	if len(args) == 1 {
@@ -170,13 +170,13 @@ func runEdit(cmd *base.Command, args []string) {
 
 	if *editModule != "" {
 		if err := module.CheckImportPath(*editModule); err != nil {
-			base.Fatalf("go mod: invalid -module: %v", err)
+			base.Fatalf("notgo.mod: invalid -module: %v", err)
 		}
 	}
 
 	if *editGo != "" {
 		if !modfile.GoVersionRE.MatchString(*editGo) {
-			base.Fatalf(`go mod: invalid -go option; expecting something like "-go 1.12"`)
+			base.Fatalf(`notgo.mod: invalid -go option; expecting something like "-go 1.12"`)
 		}
 	}
 
@@ -231,7 +231,7 @@ func runEdit(cmd *base.Command, args []string) {
 
 	err = lockedfile.Transform(gomod, func(lockedData []byte) ([]byte, error) {
 		if !bytes.Equal(lockedData, data) {
-			return nil, errors.New("go.mod changed during editing; not overwriting")
+			return nil, errors.New("notgo.mod changed during editing; not overwriting")
 		}
 		return out, nil
 	})
@@ -244,11 +244,11 @@ func runEdit(cmd *base.Command, args []string) {
 func parsePathVersion(flag, arg string) (path, version string) {
 	i := strings.Index(arg, "@")
 	if i < 0 {
-		base.Fatalf("go mod: -%s=%s: need path@version", flag, arg)
+		base.Fatalf("notgo.mod: -%s=%s: need path@version", flag, arg)
 	}
 	path, version = strings.TrimSpace(arg[:i]), strings.TrimSpace(arg[i+1:])
 	if err := module.CheckImportPath(path); err != nil {
-		base.Fatalf("go mod: -%s=%s: invalid path: %v", flag, arg, err)
+		base.Fatalf("notgo.mod: -%s=%s: invalid path: %v", flag, arg, err)
 	}
 
 	// We don't call modfile.CheckPathVersion, because that insists
@@ -257,7 +257,7 @@ func parsePathVersion(flag, arg string) (path, version string) {
 	// the next time it runs (or during -fix).
 	// Even so, we need to make sure the version is a valid token.
 	if modfile.MustQuote(version) {
-		base.Fatalf("go mod: -%s=%s: invalid version %q", flag, arg, version)
+		base.Fatalf("notgo.mod: -%s=%s: invalid version %q", flag, arg, version)
 	}
 
 	return path, version
@@ -266,11 +266,11 @@ func parsePathVersion(flag, arg string) (path, version string) {
 // parsePath parses -flag=arg expecting arg to be path (not path@version).
 func parsePath(flag, arg string) (path string) {
 	if strings.Contains(arg, "@") {
-		base.Fatalf("go mod: -%s=%s: need just path, not path@version", flag, arg)
+		base.Fatalf("notgo.mod: -%s=%s: need just path, not path@version", flag, arg)
 	}
 	path = arg
 	if err := module.CheckImportPath(path); err != nil {
-		base.Fatalf("go mod: -%s=%s: invalid path: %v", flag, arg, err)
+		base.Fatalf("notgo.mod: -%s=%s: invalid path: %v", flag, arg, err)
 	}
 	return path
 }
@@ -299,7 +299,7 @@ func flagRequire(arg string) {
 	path, version := parsePathVersion("require", arg)
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.AddRequire(path, version); err != nil {
-			base.Fatalf("go mod: -require=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -require=%s: %v", arg, err)
 		}
 	})
 }
@@ -309,7 +309,7 @@ func flagDropRequire(arg string) {
 	path := parsePath("droprequire", arg)
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.DropRequire(path); err != nil {
-			base.Fatalf("go mod: -droprequire=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -droprequire=%s: %v", arg, err)
 		}
 	})
 }
@@ -319,7 +319,7 @@ func flagExclude(arg string) {
 	path, version := parsePathVersion("exclude", arg)
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.AddExclude(path, version); err != nil {
-			base.Fatalf("go mod: -exclude=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -exclude=%s: %v", arg, err)
 		}
 	})
 }
@@ -329,7 +329,7 @@ func flagDropExclude(arg string) {
 	path, version := parsePathVersion("dropexclude", arg)
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.DropExclude(path, version); err != nil {
-			base.Fatalf("go mod: -dropexclude=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -dropexclude=%s: %v", arg, err)
 		}
 	})
 }
@@ -338,27 +338,27 @@ func flagDropExclude(arg string) {
 func flagReplace(arg string) {
 	var i int
 	if i = strings.Index(arg, "="); i < 0 {
-		base.Fatalf("go mod: -replace=%s: need old[@v]=new[@w] (missing =)", arg)
+		base.Fatalf("notgo.mod: -replace=%s: need old[@v]=new[@w] (missing =)", arg)
 	}
 	old, new := strings.TrimSpace(arg[:i]), strings.TrimSpace(arg[i+1:])
 	if strings.HasPrefix(new, ">") {
-		base.Fatalf("go mod: -replace=%s: separator between old and new is =, not =>", arg)
+		base.Fatalf("notgo.mod: -replace=%s: separator between old and new is =, not =>", arg)
 	}
 	oldPath, oldVersion, err := parsePathVersionOptional("old", old, false)
 	if err != nil {
-		base.Fatalf("go mod: -replace=%s: %v", arg, err)
+		base.Fatalf("notgo.mod: -replace=%s: %v", arg, err)
 	}
 	newPath, newVersion, err := parsePathVersionOptional("new", new, true)
 	if err != nil {
-		base.Fatalf("go mod: -replace=%s: %v", arg, err)
+		base.Fatalf("notgo.mod: -replace=%s: %v", arg, err)
 	}
 	if newPath == new && !modfile.IsDirectoryPath(new) {
-		base.Fatalf("go mod: -replace=%s: unversioned new path must be local directory", arg)
+		base.Fatalf("notgo.mod: -replace=%s: unversioned new path must be local directory", arg)
 	}
 
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.AddReplace(oldPath, oldVersion, newPath, newVersion); err != nil {
-			base.Fatalf("go mod: -replace=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -replace=%s: %v", arg, err)
 		}
 	})
 }
@@ -367,11 +367,11 @@ func flagReplace(arg string) {
 func flagDropReplace(arg string) {
 	path, version, err := parsePathVersionOptional("old", arg, true)
 	if err != nil {
-		base.Fatalf("go mod: -dropreplace=%s: %v", arg, err)
+		base.Fatalf("notgo.mod: -dropreplace=%s: %v", arg, err)
 	}
 	edits = append(edits, func(f *modfile.File) {
 		if err := f.DropReplace(path, version); err != nil {
-			base.Fatalf("go mod: -dropreplace=%s: %v", arg, err)
+			base.Fatalf("notgo.mod: -dropreplace=%s: %v", arg, err)
 		}
 	})
 }

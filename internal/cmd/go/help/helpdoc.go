@@ -300,7 +300,7 @@ This makes it possible to copy code into alternate locations in vendor trees
 without needing to update import comments.
 
 Import path checking is also disabled when using modules.
-Import path comments are obsoleted by the go.mod file's module statement.
+Import path comments are obsoleted by the notgo.mod file's module statement.
 
 See https://golang.org/s/go14customimport for details.
 	`,
@@ -621,8 +621,8 @@ Additional information available from 'go env' but not read from the environment
 	GOHOSTOS
 		The operating system (GOOS) of the Go toolchain binaries.
 	GOMOD
-		The absolute path to the go.mod of the main module.
-		If module-aware mode is enabled, but there is no go.mod, GOMOD will be
+		The absolute path to the notgo.mod of the main module.
+		If module-aware mode is enabled, but there is no notgo.mod, GOMOD will be
 		os.DevNull ("/dev/null" on Unix-like systems, "NUL" on Windows).
 		If module-aware mode is disabled, GOMOD will be the empty string.
 	GOTOOLDIR

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// go mod tidy
+// notgo.mod tidy
 
 package modcmd
 
@@ -17,10 +17,10 @@ import (
 )
 
 var cmdTidy = &base.Command{
-	UsageLine: "go mod tidy [-v]",
+	UsageLine: "notgo.mod tidy [-v]",
 	Short:     "add missing and remove unused modules",
 	Long: `
-Tidy makes sure go.mod matches the source code in the module.
+Tidy makes sure notgo.mod matches the source code in the module.
 It adds any missing modules necessary to build the current module's
 packages and dependencies, and it removes unused modules that
 don't provide any relevant packages. It also adds any missing entries
@@ -39,7 +39,7 @@ func init() {
 
 func runTidy(cmd *base.Command, args []string) {
 	if len(args) > 0 {
-		base.Fatalf("go mod tidy: no arguments allowed")
+		base.Fatalf("notgo.mod tidy: no arguments allowed")
 	}
 
 	modload.LoadALL()
@@ -49,7 +49,7 @@ func runTidy(cmd *base.Command, args []string) {
 }
 
 // modTidyGoSum resets the go.sum file content
-// to be exactly what's needed for the current go.mod.
+// to be exactly what's needed for the current notgo.mod.
 func modTidyGoSum() {
 	// Assuming go.sum already has at least enough from the successful load,
 	// we only have to tell modfetch what needs keeping.

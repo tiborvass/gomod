@@ -187,7 +187,7 @@ func moduleInfo(m module.Version, fromBuildList bool) *modinfo.ModulePublic {
 		} else {
 			info.Replace.Dir = filepath.Join(ModRoot(), r.Path)
 		}
-		info.Replace.GoMod = filepath.Join(info.Replace.Dir, "go.mod")
+		info.Replace.GoMod = filepath.Join(info.Replace.Dir, "notgo.mod")
 	}
 	if cfg.BuildMod != "vendor" {
 		completeFromModCache(info.Replace)

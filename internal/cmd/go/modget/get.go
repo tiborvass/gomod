@@ -149,7 +149,7 @@ code and dependencies. If instead the go command is running in GOPATH
 mode, the details of get's flags and effects change, as does 'go help get'.
 See 'go help modules' and 'go help gopath-get'.
 
-See also: go build, go install, go clean, go mod.
+See also: go build, go install, go clean, notgo.mod.
 	`,
 }
 
@@ -281,7 +281,7 @@ func runGet(cmd *base.Command, args []string) {
 		versionByPath[m.Path] = m.Version
 	}
 
-	// Do not allow any updating of go.mod until we've applied
+	// Do not allow any updating of notgo.mod until we've applied
 	// all the requested changes and checked that the result matches
 	// what was requested.
 	modload.DisallowWriteGoMod()
@@ -600,7 +600,7 @@ func runGet(cmd *base.Command, args []string) {
 			base.Fatalf("go: %v", err)
 		}
 		modload.SetBuildList(buildList)
-		modload.ReloadBuildList() // note: does not update go.mod
+		modload.ReloadBuildList() // note: does not update notgo.mod
 		base.ExitIfErrors()
 	}
 
@@ -670,7 +670,7 @@ func runGet(cmd *base.Command, args []string) {
 		base.Fatalf("%v", buf.String())
 	}
 
-	// Everything succeeded. Update go.mod.
+	// Everything succeeded. Update notgo.mod.
 	modload.AllowWriteGoMod()
 	modload.WriteGoMod()
 

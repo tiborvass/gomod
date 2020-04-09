@@ -19,7 +19,7 @@ import (
 )
 
 var cmdDownload = &base.Command{
-	UsageLine: "go mod download [-x] [-json] [modules]",
+	UsageLine: "notgo.mod download [-x] [-json] [modules]",
 	Short:     "download modules to local cache",
 	Long: `
 Download downloads the named modules, which can be module patterns selecting
@@ -27,7 +27,7 @@ dependencies of the main module or module queries of the form path@version.
 With no arguments, download applies to all dependencies of the main module.
 
 The go command will automatically download modules as needed during ordinary
-execution. The "go mod download" command is useful mainly for pre-filling
+execution. The "notgo.mod download" command is useful mainly for pre-filling
 the local cache or to compute the answers for a Go module proxy.
 
 By default, download writes nothing to standard output. It may print progress
@@ -46,7 +46,7 @@ corresponding to this Go struct:
         Zip      string // absolute path to cached .zip file
         Dir      string // absolute path to cached source root directory
         Sum      string // checksum for path, version (as in go.sum)
-        GoModSum string // checksum for go.mod (as in go.sum)
+        GoModSum string // checksum for notgo.mod (as in go.sum)
     }
 
 The -x flag causes download to print the commands download executes.
@@ -60,7 +60,7 @@ var downloadJSON = cmdDownload.Flag.Bool("json", false, "")
 func init() {
 	cmdDownload.Run = runDownload // break init cycle
 
-	// TODO(jayconrod): https://golang.org/issue/35849 Apply -x to other 'go mod' commands.
+	// TODO(jayconrod): https://golang.org/issue/35849 Apply -x to other 'notgo.mod' commands.
 	cmdDownload.Flag.BoolVar(&cfg.BuildX, "x", false, "")
 	work.AddModCommonFlags(cmdDownload)
 }
@@ -83,7 +83,7 @@ func runDownload(cmd *base.Command, args []string) {
 		base.Fatalf("go: modules disabled by GO111MODULE=off; see 'go help modules'")
 	}
 	if !modload.HasModRoot() && len(args) == 0 {
-		base.Fatalf("go mod download: no modules specified (see 'go help mod download')")
+		base.Fatalf("notgo.mod download: no modules specified (see 'go help mod download')")
 	}
 	if len(args) == 0 {
 		args = []string{"all"}
@@ -95,7 +95,7 @@ func runDownload(cmd *base.Command, args []string) {
 		for _, arg := range args {
 			switch arg {
 			case modload.Target.Path, targetAtLatest, targetAtUpgrade, targetAtPatch:
-				os.Stderr.WriteString("go mod download: skipping argument " + arg + " that resolves to the main module\n")
+				os.Stderr.WriteString("notgo.mod download: skipping argument " + arg + " that resolves to the main module\n")
 			}
 		}
 	}

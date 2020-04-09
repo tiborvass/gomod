@@ -142,7 +142,7 @@ func findEnv(env []cfg.EnvVar, name string) string {
 func ExtraEnvVars() []cfg.EnvVar {
 	gomod := ""
 	if modload.HasModRoot() {
-		gomod = filepath.Join(modload.ModRoot(), "go.mod")
+		gomod = filepath.Join(modload.ModRoot(), "notgo.mod")
 	} else if modload.Enabled() {
 		gomod = os.DevNull
 	}

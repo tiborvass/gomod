@@ -53,8 +53,8 @@ var (
 
 	gopath string
 
-	CmdModInit   bool   // running 'go mod init'
-	CmdModModule string // module argument for 'go mod init'
+	CmdModInit   bool   // running 'notgo.mod init'
+	CmdModModule string // module argument for 'notgo.mod init'
 
 	allowMissingModuleImports bool
 )
@@ -73,21 +73,21 @@ type modFileIndex struct {
 	exclude      map[module.Version]bool
 }
 
-// index is the index of the go.mod file as of when it was last read or written.
+// index is the index of the notgo.mod file as of when it was last read or written.
 var index *modFileIndex
 
 type requireMeta struct {
 	indirect bool
 }
 
-// ModFile returns the parsed go.mod file.
+// ModFile returns the parsed notgo.mod file.
 //
 // Note that after calling ImportPaths or LoadBuildList,
 // the require statements in the modfile.File are no longer
 // the source of truth and will be ignored: edits made directly
 // will be lost at the next call to WriteGoMod.
 // To make permanent changes to the require statements
-// in go.mod, edit it before calling ImportPaths or LoadBuildList.
+// in notgo.mod, edit it before calling ImportPaths or LoadBuildList.
 func ModFile() *modfile.File {
 	Init()
 	if modFile == nil {
@@ -155,7 +155,7 @@ func Init() {
 	}
 
 	if CmdModInit {
-		// Running 'go mod init': go.mod will be created in current directory.
+		// Running 'notgo.mod init': notgo.mod will be created in current directory.
 		modRoot = base.Cwd
 	} else {
 		modRoot = findModuleRoot(base.Cwd)
@@ -169,13 +169,13 @@ func Init() {
 				return
 			}
 		} else if search.InDir(modRoot, os.TempDir()) == "." {
-			// If you create /tmp/go.mod for experimenting,
+			// If you create /tmp/notgo.mod for experimenting,
 			// then any tests that create work directories under /tmp
 			// will find it and get modules when they're not expecting them.
 			// It's a bit of a peculiar thing to disallow but quite mysterious
 			// when it happens. See golang.org/issue/26708.
 			modRoot = ""
-			fmt.Fprintf(os.Stderr, "go: warning: ignoring go.mod in system temp root %v\n", os.TempDir())
+			fmt.Fprintf(os.Stderr, "go: warning: ignoring notgo.mod in system temp root %v\n", os.TempDir())
 		}
 	}
 	if cfg.ModFile != "" && !strings.HasSuffix(cfg.ModFile, ".mod") {
@@ -195,8 +195,8 @@ func Init() {
 		base.Fatalf("missing $GOPATH")
 	}
 	gopath = list[0]
-	if _, err := os.Stat(filepath.Join(gopath, "go.mod")); err == nil {
-		base.Fatalf("$GOPATH/go.mod exists but should not")
+	if _, err := os.Stat(filepath.Join(gopath, "notgo.mod")); err == nil {
+		base.Fatalf("$GOPATH/notgo.mod exists but should not")
 	}
 
 	oldSrcMod := filepath.Join(list[0], "src/mod")
@@ -223,7 +223,7 @@ func Init() {
 	if modRoot == "" {
 		// We're in module mode, but not inside a module.
 		//
-		// Commands like 'go build', 'go run', 'go list' have no go.mod file to
+		// Commands like 'go build', 'go run', 'go list' have no notgo.mod file to
 		// read or write. They would need to find and download the latest versions
 		// of a potentially large number of modules with no way to save version
 		// information. We can succeed slowly (but not reproducibly), but that's
@@ -248,7 +248,7 @@ func init() {
 	load.ModInit = Init
 
 	// Set modfetch.PkgMod and codehost.WorkRoot unconditionally,
-	// so that go clean -modcache and go mod download can run even without modules enabled.
+	// so that go clean -modcache and notgo.mod download can run even without modules enabled.
 	if list := filepath.SplitList(cfg.BuildContext.GOPATH); len(list) > 0 && list[0] != "" {
 		modfetch.PkgMod = filepath.Join(list[0], "pkg/mod")
 		codehost.WorkRoot = filepath.Join(list[0], "pkg/mod/cache/vcs")
@@ -285,7 +285,7 @@ func WillBeEnabled() bool {
 	}
 
 	if CmdModInit {
-		// Running 'go mod init': go.mod will be created in current directory.
+		// Running 'notgo.mod init': notgo.mod will be created in current directory.
 		return true
 	}
 	if modRoot := findModuleRoot(base.Cwd); modRoot == "" {
@@ -293,7 +293,7 @@ func WillBeEnabled() bool {
 		// Stay in GOPATH mode.
 		return false
 	} else if search.InDir(modRoot, os.TempDir()) == "." {
-		// If you create /tmp/go.mod for experimenting,
+		// If you create /tmp/notgo.mod for experimenting,
 		// then any tests that create work directories under /tmp
 		// will find it and get modules when they're not expecting them.
 		// It's a bit of a peculiar thing to disallow but quite mysterious
@@ -329,8 +329,8 @@ func HasModRoot() bool {
 	return modRoot != ""
 }
 
-// ModFilePath returns the effective path of the go.mod file. Normally, this
-// "go.mod" in the directory returned by ModRoot, but the -modfile flag may
+// ModFilePath returns the effective path of the notgo.mod file. Normally, this
+// "notgo.mod" in the directory returned by ModRoot, but the -modfile flag may
 // change its location. ModFilePath calls base.Fatalf if there is no main
 // module, even if -modfile is set.
 func ModFilePath() string {
@@ -340,7 +340,7 @@ func ModFilePath() string {
 	if cfg.ModFile != "" {
 		return cfg.ModFile
 	}
-	return filepath.Join(modRoot, "go.mod")
+	return filepath.Join(modRoot, "notgo.mod")
 }
 
 // printStackInDie causes die to print a stack trace.
@@ -371,7 +371,7 @@ func die() {
 }
 
 // InitMod sets Target and, if there is a main module, parses the initial build
-// list from its go.mod file, creating and populating that file if needed.
+// list from its notgo.mod file, creating and populating that file if needed.
 //
 // As a side-effect, InitMod sets a default for cfg.BuildMod if it does not
 // already have an explicit value.
@@ -389,7 +389,7 @@ func InitMod() {
 	}
 
 	if CmdModInit {
-		// Running go mod init: do legacy module conversion
+		// Running notgo.mod init: do legacy module conversion
 		legacyModInit()
 		modFileToBuildList()
 		WriteGoMod()
@@ -406,7 +406,7 @@ func InitMod() {
 	f, err := modfile.Parse(gomod, data, fixVersion(&fixed))
 	if err != nil {
 		// Errors returned by modfile.Parse begin with file:line.
-		base.Fatalf("go: errors parsing go.mod:\n%s\n", err)
+		base.Fatalf("go: errors parsing notgo.mod:\n%s\n", err)
 	}
 	modFile = f
 	index = indexModFile(data, f, fixed)
@@ -458,7 +458,7 @@ func fixVersion(fixed *bool) modfile.VersionFixer {
 		}
 
 		// fixVersion is called speculatively on every
-		// module, version pair from every go.mod file.
+		// module, version pair from every notgo.mod file.
 		// Avoid the query if it looks OK.
 		_, pathMajor, ok := module.SplitPathVersion(path)
 		if !ok {
@@ -534,7 +534,7 @@ func setDefaultBuildMod() {
 				// The Go version is at least 1.14, and a vendor directory exists.
 				// Set -mod=vendor by default.
 				cfg.BuildMod = "vendor"
-				cfg.BuildModReason = "Go version in go.mod is at least 1.14 and vendor directory exists."
+				cfg.BuildModReason = "Go version in notgo.mod is at least 1.14 and vendor directory exists."
 				return
 			} else {
 				modGo = index.goVersion
@@ -545,19 +545,19 @@ func setDefaultBuildMod() {
 		// choosing -mod=mod, although it probably won't be used for anything.
 		// Record the reason anyway for consistency.
 		// It may be overridden if we switch to mod=readonly below.
-		cfg.BuildModReason = fmt.Sprintf("Go version in go.mod is %s.", modGo)
+		cfg.BuildModReason = fmt.Sprintf("Go version in notgo.mod is %s.", modGo)
 	}
 
 	p := ModFilePath()
 	if fi, err := os.Stat(p); err == nil && !hasWritePerm(p, fi) {
 		cfg.BuildMod = "readonly"
-		cfg.BuildModReason = "go.mod file is read-only."
+		cfg.BuildModReason = "notgo.mod file is read-only."
 	}
 }
 
 // checkVendorConsistency verifies that the vendor/modules.txt file matches (if
 // go 1.14) or at least does not contradict (go 1.13 or earlier) the
-// requirements and replacements listed in the main module's go.mod file.
+// requirements and replacements listed in the main module's notgo.mod file.
 func checkVendorConsistency() {
 	readVendorList()
 
@@ -583,14 +583,14 @@ func checkVendorConsistency() {
 		if !vendorMeta[r.Mod].Explicit {
 			if pre114 {
 				// Before 1.14, modules.txt did not indicate whether modules were listed
-				// explicitly in the main module's go.mod file.
+				// explicitly in the main module's notgo.mod file.
 				// However, we can at least detect a version mismatch if packages were
 				// vendored from a non-matching version.
 				if vv, ok := vendorVersion[r.Mod.Path]; ok && vv != r.Mod.Version {
-					vendErrorf(r.Mod, fmt.Sprintf("is explicitly required in go.mod, but vendor/modules.txt indicates %s@%s", r.Mod.Path, vv))
+					vendErrorf(r.Mod, fmt.Sprintf("is explicitly required in notgo.mod, but vendor/modules.txt indicates %s@%s", r.Mod.Path, vv))
 				}
 			} else {
-				vendErrorf(r.Mod, "is explicitly required in go.mod, but not marked as explicit in vendor/modules.txt")
+				vendErrorf(r.Mod, "is explicitly required in notgo.mod, but not marked as explicit in vendor/modules.txt")
 			}
 		}
 	}
@@ -604,7 +604,7 @@ func checkVendorConsistency() {
 
 	// We need to verify *all* replacements that occur in modfile: even if they
 	// don't directly apply to any module in the vendor list, the replacement
-	// go.mod file can affect the selected versions of other (transitive)
+	// notgo.mod file can affect the selected versions of other (transitive)
 	// dependencies
 	for _, r := range modFile.Replace {
 		vr := vendorMeta[r.Old].Replacement
@@ -613,10 +613,10 @@ func checkVendorConsistency() {
 				// Before 1.14, modules.txt omitted wildcard replacements and
 				// replacements for modules that did not have any packages to vendor.
 			} else {
-				vendErrorf(r.Old, "is replaced in go.mod, but not marked as replaced in vendor/modules.txt")
+				vendErrorf(r.Old, "is replaced in notgo.mod, but not marked as replaced in vendor/modules.txt")
 			}
 		} else if vr != r.New {
-			vendErrorf(r.Old, "is replaced by %s in go.mod, but marked as replaced by %s in vendor/modules.txt", describe(r.New), describe(vr))
+			vendErrorf(r.Old, "is replaced by %s in notgo.mod, but marked as replaced by %s in vendor/modules.txt", describe(r.New), describe(vr))
 		}
 	}
 
@@ -624,7 +624,7 @@ func checkVendorConsistency() {
 		meta := vendorMeta[mod]
 		if meta.Explicit {
 			if _, inGoMod := index.require[mod]; !inGoMod {
-				vendErrorf(mod, "is marked as explicit in vendor/modules.txt, but not explicitly required in go.mod")
+				vendErrorf(mod, "is marked as explicit in vendor/modules.txt, but not explicitly required in notgo.mod")
 			}
 		}
 	}
@@ -632,20 +632,20 @@ func checkVendorConsistency() {
 	for _, mod := range vendorReplaced {
 		r := Replacement(mod)
 		if r == (module.Version{}) {
-			vendErrorf(mod, "is marked as replaced in vendor/modules.txt, but not replaced in go.mod")
+			vendErrorf(mod, "is marked as replaced in vendor/modules.txt, but not replaced in notgo.mod")
 			continue
 		}
 		if meta := vendorMeta[mod]; r != meta.Replacement {
-			vendErrorf(mod, "is marked as replaced by %s in vendor/modules.txt, but replaced by %s in go.mod", describe(meta.Replacement), describe(r))
+			vendErrorf(mod, "is marked as replaced by %s in vendor/modules.txt, but replaced by %s in notgo.mod", describe(meta.Replacement), describe(r))
 		}
 	}
 
 	if vendErrors.Len() > 0 {
-		base.Fatalf("go: inconsistent vendoring in %s:%s\n\nrun 'go mod vendor' to sync, or use -mod=mod or -mod=readonly to ignore the vendor directory", modRoot, vendErrors)
+		base.Fatalf("go: inconsistent vendoring in %s:%s\n\nrun 'notgo.mod vendor' to sync, or use -mod=mod or -mod=readonly to ignore the vendor directory", modRoot, vendErrors)
 	}
 }
 
-// Allowed reports whether module m is allowed (not excluded) by the main module's go.mod.
+// Allowed reports whether module m is allowed (not excluded) by the main module's notgo.mod.
 func Allowed(m module.Version) bool {
 	return index == nil || !index.exclude[m]
 }
@@ -656,7 +656,7 @@ func legacyModInit() {
 		if err != nil {
 			base.Fatalf("go: %v", err)
 		}
-		fmt.Fprintf(os.Stderr, "go: creating new go.mod: module %s\n", path)
+		fmt.Fprintf(os.Stderr, "go: creating new notgo.mod: module %s\n", path)
 		modFile = new(modfile.File)
 		modFile.AddModuleStmt(path)
 		addGoStmt() // Add the go directive before converted module requirements.
@@ -684,7 +684,7 @@ func legacyModInit() {
 	}
 }
 
-// addGoStmt adds a go directive to the go.mod file if it does not already include one.
+// addGoStmt adds a go directive to the notgo.mod file if it does not already include one.
 // The 'go' version added, if any, is the latest version supported by this toolchain.
 func addGoStmt() {
 	if modFile.Go != nil && modFile.Go.Version != "" {
@@ -721,9 +721,9 @@ func findModuleRoot(dir string) (root string) {
 	}
 	dir = filepath.Clean(dir)
 
-	// Look for enclosing go.mod.
+	// Look for enclosing notgo.mod.
 	for {
-		if fi, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
+		if fi, err := os.Stat(filepath.Join(dir, "notgo.mod")); err == nil && !fi.IsDir() {
 			return dir
 		}
 		d := filepath.Dir(dir)
@@ -761,7 +761,7 @@ func findAltConfig(dir string) (root, name string) {
 
 func findModulePath(dir string) (string, error) {
 	if CmdModModule != "" {
-		// Running go mod init x/y/z; return x/y/z.
+		// Running notgo.mod init x/y/z; return x/y/z.
 		if err := module.CheckImportPath(CmdModModule); err != nil {
 			return "", err
 		}
@@ -826,8 +826,8 @@ func findModulePath(dir string) (string, error) {
 	msg := `cannot determine module path for source directory %s (outside GOPATH, module path must be specified)
 
 Example usage:
-	'go mod init example.com/m' to initialize a v0 or v1 module
-	'go mod init example.com/m/v2' to initialize a v2 module
+	'notgo.mod init example.com/m' to initialize a v0 or v1 module
+	'notgo.mod init example.com/m/v2' to initialize a v2 module
 
 Run 'go help mod init' for more information.
 `
@@ -862,7 +862,7 @@ func DisallowWriteGoMod() {
 }
 
 // AllowWriteGoMod undoes the effect of DisallowWriteGoMod:
-// future calls to WriteGoMod will update go.mod if needed.
+// future calls to WriteGoMod will update notgo.mod if needed.
 // Note that any past calls have been discarded, so typically
 // a call to AlowWriteGoMod should be followed by a call to WriteGoMod.
 func AllowWriteGoMod() {
@@ -870,7 +870,7 @@ func AllowWriteGoMod() {
 }
 
 // MinReqs returns a Reqs with minimal additional dependencies of Target,
-// as will be written to go.mod.
+// as will be written to notgo.mod.
 func MinReqs() mvs.Reqs {
 	var retain []string
 	for _, m := range buildList[1:] {
@@ -886,16 +886,16 @@ func MinReqs() mvs.Reqs {
 	return &mvsReqs{buildList: append([]module.Version{Target}, min...)}
 }
 
-// WriteGoMod writes the current build list back to go.mod.
+// WriteGoMod writes the current build list back to notgo.mod.
 func WriteGoMod() {
 	// If we're using -mod=vendor we basically ignored
-	// go.mod, so definitely don't try to write back our
+	// notgo.mod, so definitely don't try to write back our
 	// incomplete view of the world.
 	if !allowWriteGoMod || cfg.BuildMod == "vendor" {
 		return
 	}
 
-	// If we aren't in a module, we don't have anywhere to write a go.mod file.
+	// If we aren't in a module, we don't have anywhere to write a notgo.mod file.
 	if modRoot == "" {
 		return
 	}
@@ -924,19 +924,19 @@ func WriteGoMod() {
 	dirty := index.modFileIsDirty(modFile)
 	if dirty && cfg.BuildMod == "readonly" {
 		// If we're about to fail due to -mod=readonly,
-		// prefer to report a dirty go.mod over a dirty go.sum
+		// prefer to report a dirty notgo.mod over a dirty go.sum
 		if cfg.BuildModReason != "" {
-			base.Fatalf("go: updates to go.mod needed, disabled by -mod=readonly\n\t(%s)", cfg.BuildModReason)
+			base.Fatalf("go: updates to notgo.mod needed, disabled by -mod=readonly\n\t(%s)", cfg.BuildModReason)
 		} else {
-			base.Fatalf("go: updates to go.mod needed, disabled by -mod=readonly")
+			base.Fatalf("go: updates to notgo.mod needed, disabled by -mod=readonly")
 		}
 	}
-	// Always update go.sum, even if we didn't change go.mod: we may have
+	// Always update go.sum, even if we didn't change notgo.mod: we may have
 	// downloaded modules that we didn't have before.
 	modfetch.WriteGoSum()
 
 	if !dirty && cfg.CmdName != "mod tidy" {
-		// The go.mod file has the same semantic content that it had before
+		// The notgo.mod file has the same semantic content that it had before
 		// (but not necessarily the same exact bytes).
 		// Ignore any intervening edits.
 		return
@@ -947,7 +947,7 @@ func WriteGoMod() {
 		base.Fatalf("go: %v", err)
 	}
 	defer func() {
-		// At this point we have determined to make the go.mod file on disk equal to new.
+		// At this point we have determined to make the notgo.mod file on disk equal to new.
 		index = indexModFile(new, modFile, false)
 	}()
 
@@ -961,13 +961,13 @@ func WriteGoMod() {
 
 	err = lockedfile.Transform(ModFilePath(), func(old []byte) ([]byte, error) {
 		if bytes.Equal(old, new) {
-			// The go.mod file is already equal to new, possibly as the result of some
+			// The notgo.mod file is already equal to new, possibly as the result of some
 			// other process.
 			return nil, errNoChange
 		}
 
 		if index != nil && !bytes.Equal(old, index.data) {
-			// The contents of the go.mod file have changed. In theory we could add all
+			// The contents of the notgo.mod file have changed. In theory we could add all
 			// of the new modules to the build list, recompute, and check whether any
 			// module in *our* build list got bumped to a different version, but that's
 			// a lot of work for marginal benefit. Instead, fail the command: if users
@@ -980,7 +980,7 @@ func WriteGoMod() {
 	})
 
 	if err != nil && err != errNoChange {
-		base.Fatalf("go: updating go.mod: %v", err)
+		base.Fatalf("go: updating notgo.mod: %v", err)
 	}
 }
 
@@ -1023,7 +1023,7 @@ func indexModFile(data []byte, modFile *modfile.File, needsFix bool) *modFileInd
 	return i
 }
 
-// modFileIsDirty reports whether the go.mod file differs meaningfully
+// modFileIsDirty reports whether the notgo.mod file differs meaningfully
 // from what was indexed.
 // If modFile has been changed (even cosmetically) since it was first read,
 // modFile.Cleanup must be called before modFileIsDirty.
@@ -1050,7 +1050,7 @@ func (i *modFileIndex) modFileIsDirty(modFile *modfile.File) bool {
 		}
 	} else if modFile.Go.Version != i.goVersion {
 		if i.goVersion == "" && cfg.BuildMod == "readonly" {
-			// go.mod files did not always require a 'go' version, so do not error out
+			// notgo.mod files did not always require a 'go' version, so do not error out
 			// if one is missing — we may be inside an older module in the module
 			// cache, and should bias toward providing useful behavior.
 		} else {
@@ -1071,7 +1071,7 @@ func (i *modFileIndex) modFileIsDirty(modFile *modfile.File) bool {
 			if cfg.BuildMod == "readonly" {
 				// The module's requirements are consistent; only the "// indirect"
 				// comments that are wrong. But those are only guaranteed to be accurate
-				// after a "go mod tidy" — it's a good idea to run those before
+				// after a "notgo.mod tidy" — it's a good idea to run those before
 				// committing a change, but it's certainly not mandatory.
 			} else {
 				return true

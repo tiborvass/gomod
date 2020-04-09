@@ -189,7 +189,7 @@ func PseudoVersionBase(v string) (string, error) {
 			//
 			// NOTE(bcmills): I cannot find a historical bug that accounts for
 			// pseudo-versions of this form, nor have I seen such versions in any
-			// actual go.mod files. If we find actual examples of this form and a
+			// actual notgo.mod files. If we find actual examples of this form and a
 			// reasonable theory of how they came into existence, it seems fine to
 			// treat them as equivalent to vX.0.0 (especially since the invalid
 			// pseudo-versions have lower precedence than the real ones). For now, we

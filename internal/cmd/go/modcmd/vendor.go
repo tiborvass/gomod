@@ -25,7 +25,7 @@ import (
 )
 
 var cmdVendor = &base.Command{
-	UsageLine: "go mod vendor [-v]",
+	UsageLine: "notgo.mod vendor [-v]",
 	Short:     "make vendored copy of dependencies",
 	Long: `
 Vendor resets the main module's vendor directory to include all packages
@@ -45,13 +45,13 @@ func init() {
 
 func runVendor(cmd *base.Command, args []string) {
 	if len(args) != 0 {
-		base.Fatalf("go mod vendor: vendor takes no arguments")
+		base.Fatalf("notgo.mod vendor: vendor takes no arguments")
 	}
 	pkgs := modload.LoadVendor()
 
 	vdir := filepath.Join(modload.ModRoot(), "vendor")
 	if err := os.RemoveAll(vdir); err != nil {
-		base.Fatalf("go mod vendor: %v", err)
+		base.Fatalf("notgo.mod vendor: %v", err)
 	}
 
 	modpkgs := make(map[module.Version][]string)
@@ -67,7 +67,7 @@ func runVendor(cmd *base.Command, args []string) {
 	isExplicit := map[module.Version]bool{}
 	if gv := modload.ModFile().Go; gv != nil && semver.Compare("v"+gv.Version, "v1.14") >= 0 {
 		// If the Go version is at least 1.14, annotate all explicit 'require' and
-		// 'replace' targets found in the go.mod file so that we can perform a
+		// 'replace' targets found in the notgo.mod file so that we can perform a
 		// stronger consistency check when -mod=vendor is set.
 		for _, r := range modload.ModFile().Require {
 			isExplicit[r.Mod] = true
@@ -124,7 +124,7 @@ func runVendor(cmd *base.Command, args []string) {
 		return
 	}
 	if err := ioutil.WriteFile(filepath.Join(vdir, "modules.txt"), buf.Bytes(), 0666); err != nil {
-		base.Fatalf("go mod vendor: %v", err)
+		base.Fatalf("notgo.mod vendor: %v", err)
 	}
 }
 
@@ -230,7 +230,7 @@ func matchPotentialSourceFile(dir string, info os.FileInfo) bool {
 	if strings.HasSuffix(info.Name(), ".go") {
 		f, err := os.Open(filepath.Join(dir, info.Name()))
 		if err != nil {
-			base.Fatalf("go mod vendor: %v", err)
+			base.Fatalf("notgo.mod vendor: %v", err)
 		}
 		defer f.Close()
 
@@ -252,10 +252,10 @@ func matchPotentialSourceFile(dir string, info os.FileInfo) bool {
 func copyDir(dst, src string, match func(dir string, info os.FileInfo) bool) {
 	files, err := ioutil.ReadDir(src)
 	if err != nil {
-		base.Fatalf("go mod vendor: %v", err)
+		base.Fatalf("notgo.mod vendor: %v", err)
 	}
 	if err := os.MkdirAll(dst, 0777); err != nil {
-		base.Fatalf("go mod vendor: %v", err)
+		base.Fatalf("notgo.mod vendor: %v", err)
 	}
 	for _, file := range files {
 		if file.IsDir() || !file.Mode().IsRegular() || !match(src, file) {
@@ -263,18 +263,18 @@ func copyDir(dst, src string, match func(dir string, info os.FileInfo) bool) {
 		}
 		r, err := os.Open(filepath.Join(src, file.Name()))
 		if err != nil {
-			base.Fatalf("go mod vendor: %v", err)
+			base.Fatalf("notgo.mod vendor: %v", err)
 		}
 		w, err := os.Create(filepath.Join(dst, file.Name()))
 		if err != nil {
-			base.Fatalf("go mod vendor: %v", err)
+			base.Fatalf("notgo.mod vendor: %v", err)
 		}
 		if _, err := io.Copy(w, r); err != nil {
-			base.Fatalf("go mod vendor: %v", err)
+			base.Fatalf("notgo.mod vendor: %v", err)
 		}
 		r.Close()
 		if err := w.Close(); err != nil {
-			base.Fatalf("go mod vendor: %v", err)
+			base.Fatalf("notgo.mod vendor: %v", err)
 		}
 	}
 }

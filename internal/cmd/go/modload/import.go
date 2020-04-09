@@ -319,7 +319,7 @@ var haveGoModCache, haveGoFilesCache par.Cache
 // if it were in the module with module path mpath and root mdir.
 // If path is syntactically not within mpath,
 // or if mdir is a local file tree (isLocal == true) and the directory
-// that would hold path is in a sub-module (covered by a go.mod below mdir),
+// that would hold path is in a sub-module (covered by a notgo.mod below mdir),
 // dirInModule returns "", false.
 //
 // Otherwise, dirInModule returns the name of the directory where
@@ -346,7 +346,7 @@ func dirInModule(path, mpath, mdir string, isLocal bool) (dir string, haveGoFile
 	if isLocal {
 		for d := dir; d != mdir && len(d) > len(mdir); {
 			haveGoMod := haveGoModCache.Do(d, func() interface{} {
-				fi, err := os.Stat(filepath.Join(d, "go.mod"))
+				fi, err := os.Stat(filepath.Join(d, "notgo.mod"))
 				return err == nil && !fi.IsDir()
 			}).(bool)
 

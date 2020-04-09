@@ -127,7 +127,7 @@ func lockVersion(mod module.Version) (unlock func(), err error) {
 }
 
 // SideLock locks a file within the module cache that that previously guarded
-// edits to files outside the cache, such as go.sum and go.mod files in the
+// edits to files outside the cache, such as go.sum and notgo.mod files in the
 // user's working directory.
 // If err is nil, the caller MUST eventually call the unlock function.
 func SideLock() (unlock func(), err error) {
@@ -260,7 +260,7 @@ func (r *cachingRepo) GoMod(version string) ([]byte, error) {
 				return cached{text, err}
 			}
 			if err := writeDiskGoMod(file, text); err != nil {
-				fmt.Fprintf(os.Stderr, "go: writing go.mod cache: %v\n", err)
+				fmt.Fprintf(os.Stderr, "go: writing notgo.mod cache: %v\n", err)
 			}
 		}
 		return cached{text, err}
@@ -380,8 +380,8 @@ func GoModFile(path, version string) (string, error) {
 	return file, nil
 }
 
-// GoModSum returns the go.sum entry for the module version's go.mod file.
-// (That is, it returns the entry listed in go.sum as "path version/go.mod".)
+// GoModSum returns the go.sum entry for the module version's notgo.mod file.
+// (That is, it returns the entry listed in go.sum as "path version/notgo.mod".)
 func GoModSum(path, version string) (string, error) {
 	if !semver.IsValid(version) {
 		return "", fmt.Errorf("invalid version %q", version)
@@ -497,14 +497,14 @@ func readDiskStatByHash(path, rev string) (file string, info *RevInfo, err error
 	return file, info, err
 }
 
-// oldVgoPrefix is the prefix in the old auto-generated cached go.mod files.
-// We stopped trying to auto-generate the go.mod files. Now we use a trivial
-// go.mod with only a module line, and we've dropped the version prefix
+// oldVgoPrefix is the prefix in the old auto-generated cached notgo.mod files.
+// We stopped trying to auto-generate the notgo.mod files. Now we use a trivial
+// notgo.mod with only a module line, and we've dropped the version prefix
 // entirely. If we see a version prefix, that means we're looking at an old copy
 // and should ignore it.
 var oldVgoPrefix = []byte("//vgo 0.0.")
 
-// readDiskGoMod reads a cached go.mod file from disk,
+// readDiskGoMod reads a cached notgo.mod file from disk,
 // returning the name of the cache file and the result.
 // If the read fails, the caller can use
 // writeDiskGoMod(file, data) to write a new cache entry.
@@ -556,7 +556,7 @@ func writeDiskStat(file string, info *RevInfo) error {
 	return writeDiskCache(file, js)
 }
 
-// writeDiskGoMod writes a go.mod cache entry.
+// writeDiskGoMod writes a notgo.mod cache entry.
 // The file name must have been returned by a previous call to readDiskGoMod.
 func writeDiskGoMod(file string, text []byte) error {
 	return writeDiskCache(file, text)

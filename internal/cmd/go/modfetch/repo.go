@@ -46,7 +46,7 @@ type Repo interface {
 	// It is only used when there are no tagged versions.
 	Latest() (*RevInfo, error)
 
-	// GoMod returns the go.mod file for the given version.
+	// GoMod returns the notgo.mod file for the given version.
 	GoMod(version string) (data []byte, err error)
 
 	// Zip writes a zip file for the given version to dst.
@@ -67,15 +67,15 @@ type RevInfo struct {
 // Re: module paths, import paths, repository roots, and lookups
 //
 // A module is a collection of Go packages stored in a file tree
-// with a go.mod file at the root of the tree.
-// The go.mod defines the module path, which is the import path
+// with a notgo.mod file at the root of the tree.
+// The notgo.mod defines the module path, which is the import path
 // corresponding to the root of the file tree.
 // The import path of a directory within that file tree is the module path
 // joined with the name of the subdirectory relative to the root.
 //
 // For example, the module with path rsc.io/qr corresponds to the
 // file tree in the repository https://github.com/rsc/qr.
-// That file tree has a go.mod that says "module rsc.io/qr".
+// That file tree has a notgo.mod that says "module rsc.io/qr".
 // The package in the root directory has import path "rsc.io/qr".
 // The package in the gf256 subdirectory has import path "rsc.io/qr/gf256".
 // In this example, "rsc.io/qr" is both a module path and an import path.
@@ -84,24 +84,24 @@ type RevInfo struct {
 //
 // As a special case to incorporate code written before modules were
 // introduced, if a path p resolves using the pre-module "go get" lookup
-// to the root of a source code repository without a go.mod file,
-// that repository is treated as if it had a go.mod in its root directory
-// declaring module path p. (The go.mod is further considered to
+// to the root of a source code repository without a notgo.mod file,
+// that repository is treated as if it had a notgo.mod in its root directory
+// declaring module path p. (The notgo.mod is further considered to
 // contain requirements corresponding to any legacy version
 // tracking format such as Gopkg.lock, vendor/vendor.conf, and so on.)
 //
 // The presentation so far ignores the fact that a source code repository
 // has many different versions of a file tree, and those versions may
-// differ in whether a particular go.mod exists and what it contains.
+// differ in whether a particular notgo.mod exists and what it contains.
 // In fact there is a well-defined mapping only from a module path, version
 // pair - often written path@version - to a particular file tree.
-// For example rsc.io/qr@v0.1.0 depends on the "implicit go.mod at root of
-// repository" rule, while rsc.io/qr@v0.2.0 has an explicit go.mod.
+// For example rsc.io/qr@v0.1.0 depends on the "implicit notgo.mod at root of
+// repository" rule, while rsc.io/qr@v0.2.0 has an explicit notgo.mod.
 // Because the "go get" import paths rsc.io/qr and github.com/rsc/qr
 // both redirect to the Git repository https://github.com/rsc/qr,
 // github.com/rsc/qr@v0.1.0 is the same file tree as rsc.io/qr@v0.1.0
 // but a different module (a different name). In contrast, since v0.2.0
-// of that repository has an explicit go.mod that declares path rsc.io/qr,
+// of that repository has an explicit notgo.mod that declares path rsc.io/qr,
 // github.com/rsc/qr@v0.2.0 is an invalid module path, version pair.
 // Before modules, import comments would have had the same effect.
 //
@@ -113,7 +113,7 @@ type RevInfo struct {
 // For example, suppose that we want to split rsc.io/qr/gf256 into its
 // own module, so that there would be two modules rsc.io/qr and rsc.io/qr/gf256.
 // Then we can simultaneously issue rsc.io/qr v0.3.0 (dropping the gf256 subdirectory)
-// and rsc.io/qr/gf256 v0.1.0, including in their respective go.mod
+// and rsc.io/qr/gf256 v0.1.0, including in their respective notgo.mod
 // cyclic requirements pointing at each other: rsc.io/qr v0.3.0 requires
 // rsc.io/qr/gf256 v0.1.0 and vice versa. Then a build can be
 // using an older rsc.io/qr module that includes the gf256 package, but if
@@ -138,7 +138,7 @@ type RevInfo struct {
 // as a limited kind of monorepo. For example rsc.io/qr/v2,
 // the v2.x.x continuation of rsc.io/qr, is expected to be found
 // in v2-tagged commits in https://github.com/rsc/qr, either
-// in the root or in a v2 subdirectory, disambiguated by go.mod.
+// in the root or in a v2 subdirectory, disambiguated by notgo.mod.
 // Again the precise file tree corresponding to a module
 // depends on which version we are considering.
 //
@@ -167,7 +167,7 @@ type RevInfo struct {
 // (usually a commit hash or source code repository tag, not necessarily
 // a module version).
 // ImportRepoRev is used when converting legacy dependency requirements
-// from older systems into go.mod files. Those older systems worked
+// from older systems into notgo.mod files. Those older systems worked
 // at either package or repository granularity, and most of the time they
 // recorded commit hashes, not tagged versions.
 
@@ -321,9 +321,9 @@ func ImportRepoRev(path, rev string) (Repo, *RevInfo, error) {
 		return nil, nil, err
 	}
 
-	// TODO: Look in repo to find path, check for go.mod files.
+	// TODO: Look in repo to find path, check for notgo.mod files.
 	// For now we're just assuming rr.Root is the module path,
-	// which is true in the absence of go.mod files.
+	// which is true in the absence of notgo.mod files.
 
 	repo, err := newCodeRepo(code, rr.Root, rr.Root)
 	if err != nil {

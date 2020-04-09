@@ -22,14 +22,14 @@ import (
 )
 
 var cmdVerify = &base.Command{
-	UsageLine: "go mod verify",
+	UsageLine: "notgo.mod verify",
 	Short:     "verify dependencies have expected content",
 	Long: `
 Verify checks that the dependencies of the current module,
 which are stored in a local downloaded source cache, have not been
 modified since being downloaded. If all the modules are unmodified,
 verify prints "all modules verified." Otherwise it reports which
-modules have been changed and causes 'go mod' to exit with a
+modules have been changed and causes 'notgo.mod' to exit with a
 non-zero status.
 	`,
 	Run: runVerify,
@@ -42,9 +42,9 @@ func init() {
 func runVerify(cmd *base.Command, args []string) {
 	if len(args) != 0 {
 		// NOTE(rsc): Could take a module pattern.
-		base.Fatalf("go mod verify: verify takes no arguments")
+		base.Fatalf("notgo.mod verify: verify takes no arguments")
 	}
-	// Checks go mod expected behavior
+	// Checks notgo.mod expected behavior
 	if !modload.Enabled() || !modload.HasModRoot() {
 		if cfg.Getenv("GO111MODULE") == "off" {
 			base.Fatalf("go: modules disabled by GO111MODULE=off; see 'go help modules'")

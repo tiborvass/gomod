@@ -106,9 +106,9 @@ and test commands:
 		leave newly-created directories in the module cache read-write
 		instead of making them read-only.
 	-modfile file
-		in module aware mode, read (and possibly write) an alternate go.mod
+		in module aware mode, read (and possibly write) an alternate notgo.mod
 		file instead of the one in the module root directory. A file named
-		"go.mod" must still be present in order to determine the module root
+		"notgo.mod" must still be present in order to determine the module root
 		directory, but it is not accessed. When -modfile is specified, an
 		alternate go.sum file is also used: its path is derived from the
 		-modfile flag by trimming the ".mod" extension and appending ".sum".
@@ -270,7 +270,7 @@ func AddBuildFlags(cmd *base.Command, mask BuildFlagMask) {
 }
 
 // AddModCommonFlags adds the module-related flags common to build commands
-// and 'go mod' subcommands.
+// and 'notgo.mod' subcommands.
 func AddModCommonFlags(cmd *base.Command) {
 	cmd.Flag.BoolVar(&cfg.ModCacheRW, "modcacherw", false, "")
 	cmd.Flag.StringVar(&cfg.ModFile, "modfile", "", "")

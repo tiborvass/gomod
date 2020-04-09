@@ -192,7 +192,7 @@ func (r *codeRepo) appendIncompatibleVersions(list, incompatible []string) ([]st
 	}
 
 	versionHasGoMod := func(v string) (bool, error) {
-		_, err := r.code.ReadFile(v, "go.mod", codehost.MaxGoMod)
+		_, err := r.code.ReadFile(v, "notgo.mod", codehost.MaxGoMod)
 		if err == nil {
 			return true, nil
 		}
@@ -211,7 +211,7 @@ func (r *codeRepo) appendIncompatibleVersions(list, incompatible []string) ([]st
 			return nil, err
 		}
 		if ok {
-			// The latest compatible version has a go.mod file, so assume that all
+			// The latest compatible version has a notgo.mod file, so assume that all
 			// subsequent versions do as well, and do not include any +incompatible
 			// versions. Even if we are wrong, the author clearly intends module
 			// consumers to be on the v0/v1 line instead of a higher +incompatible
@@ -248,7 +248,7 @@ func (r *codeRepo) appendIncompatibleVersions(list, incompatible []string) ([]st
 		}
 
 		if lastMajorHasGoMod {
-			// The latest release of this major version has a go.mod file, so it is
+			// The latest release of this major version has a notgo.mod file, so it is
 			// not allowed as +incompatible. It would be confusing to include some
 			// minor versions of this major version as +incompatible but require
 			// semantic import versioning for others, so drop all +incompatible
@@ -306,13 +306,13 @@ func (r *codeRepo) convert(info *codehost.RevInfo, statVers string) (*RevInfo, e
 
 	// If this is a plain tag (no dir/ prefix)
 	// and the module path is unversioned,
-	// and if the underlying file tree has no go.mod,
+	// and if the underlying file tree has no notgo.mod,
 	// then allow using the tag with a +incompatible suffix.
 	var canUseIncompatible func() bool
 	canUseIncompatible = func() bool {
 		var ok bool
 		if r.codeDir == "" && r.pathMajor == "" {
-			_, errGoMod := r.code.ReadFile(info.Name, "go.mod", codehost.MaxGoMod)
+			_, errGoMod := r.code.ReadFile(info.Name, "notgo.mod", codehost.MaxGoMod)
 			if errGoMod != nil {
 				ok = true
 			}
@@ -331,23 +331,23 @@ func (r *codeRepo) convert(info *codehost.RevInfo, statVers string) (*RevInfo, e
 		}
 	}
 
-	// checkGoMod verifies that the go.mod file for the module exists or does not
+	// checkGoMod verifies that the notgo.mod file for the module exists or does not
 	// exist as required by info2.Version and the module path represented by r.
 	checkGoMod := func() (*RevInfo, error) {
-		// If r.codeDir is non-empty, then the go.mod file must exist: the module
+		// If r.codeDir is non-empty, then the notgo.mod file must exist: the module
 		// author — not the module consumer, — gets to decide how to carve up the repo
 		// into modules.
 		//
-		// Conversely, if the go.mod file exists, the module author — not the module
+		// Conversely, if the notgo.mod file exists, the module author — not the module
 		// consumer — gets to determine the module's path
 		//
 		// r.findDir verifies both of these conditions. Execute it now so that
-		// r.Stat will correctly return a notExistError if the go.mod location or
+		// r.Stat will correctly return a notExistError if the notgo.mod location or
 		// declared module path doesn't match.
 		_, _, _, err := r.findDir(info2.Version)
 		if err != nil {
 			// TODO: It would be nice to return an error like "not a module".
-			// Right now we return "missing go.mod", which is a little confusing.
+			// Right now we return "missing notgo.mod", which is a little confusing.
 			return nil, &module.ModuleError{
 				Path: r.modPath,
 				Err: &module.InvalidVersionError{
@@ -357,14 +357,14 @@ func (r *codeRepo) convert(info *codehost.RevInfo, statVers string) (*RevInfo, e
 			}
 		}
 
-		// If the version is +incompatible, then the go.mod file must not exist:
+		// If the version is +incompatible, then the notgo.mod file must not exist:
 		// +incompatible is not an ongoing opt-out from semantic import versioning.
 		if strings.HasSuffix(info2.Version, "+incompatible") {
 			if !canUseIncompatible() {
 				if r.pathMajor != "" {
 					return nil, invalidf("+incompatible suffix not allowed: module path includes a major version suffix, so major version must match")
 				} else {
-					return nil, invalidf("+incompatible suffix not allowed: module contains a go.mod file, so semantic import versioning is required")
+					return nil, invalidf("+incompatible suffix not allowed: module contains a notgo.mod file, so semantic import versioning is required")
 				}
 			}
 
@@ -402,7 +402,7 @@ func (r *codeRepo) convert(info *codehost.RevInfo, statVers string) (*RevInfo, e
 					// so strip out the existing “invalid version” wrapper.
 					err = vErr.Err
 				}
-				return nil, invalidf("module contains a go.mod file, so major version must be compatible: %v", err)
+				return nil, invalidf("module contains a notgo.mod file, so major version must be compatible: %v", err)
 			}
 		}
 
@@ -685,7 +685,7 @@ func (r *codeRepo) versionToRev(version string) (rev string, err error) {
 
 // findDir locates the directory within the repo containing the module.
 //
-// If r.pathMajor is non-empty, this can be either r.codeDir or — if a go.mod
+// If r.pathMajor is non-empty, this can be either r.codeDir or — if a notgo.mod
 // file exists — r.codeDir/r.pathMajor[1:].
 func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err error) {
 	rev, err = r.versionToRev(version)
@@ -693,9 +693,9 @@ func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err e
 		return "", "", nil, err
 	}
 
-	// Load info about go.mod but delay consideration
-	// (except I/O error) until we rule out v2/go.mod.
-	file1 := path.Join(r.codeDir, "go.mod")
+	// Load info about notgo.mod but delay consideration
+	// (except I/O error) until we rule out v2/notgo.mod.
+	file1 := path.Join(r.codeDir, "notgo.mod")
 	gomod1, err1 := r.code.ReadFile(rev, file1, codehost.MaxGoMod)
 	if err1 != nil && !os.IsNotExist(err1) {
 		return "", "", nil, fmt.Errorf("reading %s/%s at revision %s: %v", r.pathPrefix, file1, rev, err1)
@@ -706,14 +706,14 @@ func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err e
 	var file2 string
 	if r.pathMajor != "" && r.codeRoot != r.modPath && !strings.HasPrefix(r.pathMajor, ".") {
 		// Suppose pathMajor is "/v2".
-		// Either go.mod should claim v2 and v2/go.mod should not exist,
-		// or v2/go.mod should exist and claim v2. Not both.
+		// Either notgo.mod should claim v2 and v2/notgo.mod should not exist,
+		// or v2/notgo.mod should exist and claim v2. Not both.
 		// Note that we don't check the full path, just the major suffix,
 		// because of replacement modules. This might be a fork of
 		// the real module, found at a different path, usable only in
 		// a replace directive.
 		dir2 := path.Join(r.codeDir, r.pathMajor[1:])
-		file2 = path.Join(dir2, "go.mod")
+		file2 = path.Join(dir2, "notgo.mod")
 		gomod2, err2 := r.code.ReadFile(rev, file2, codehost.MaxGoMod)
 		if err2 != nil && !os.IsNotExist(err2) {
 			return "", "", nil, fmt.Errorf("reading %s/%s at revision %s: %v", r.pathPrefix, file2, rev, err2)
@@ -722,7 +722,7 @@ func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err e
 		found2 := err2 == nil && isMajor(mpath2, r.pathMajor)
 
 		if found1 && found2 {
-			return "", "", nil, fmt.Errorf("%s/%s and ...%s/go.mod both have ...%s module paths at revision %s", r.pathPrefix, file1, r.pathMajor, r.pathMajor, rev)
+			return "", "", nil, fmt.Errorf("%s/%s and ...%s/notgo.mod both have ...%s module paths at revision %s", r.pathPrefix, file1, r.pathMajor, r.pathMajor, rev)
 		}
 		if found2 {
 			return rev, dir2, gomod2, nil
@@ -735,16 +735,16 @@ func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err e
 		}
 	}
 
-	// Not v2/go.mod, so it's either go.mod or nothing. Which is it?
+	// Not v2/notgo.mod, so it's either notgo.mod or nothing. Which is it?
 	if found1 {
-		// Explicit go.mod with matching major version ok.
+		// Explicit notgo.mod with matching major version ok.
 		return rev, r.codeDir, gomod1, nil
 	}
 	if err1 == nil {
-		// Explicit go.mod with non-matching major version disallowed.
+		// Explicit notgo.mod with non-matching major version disallowed.
 		suffix := ""
 		if file2 != "" {
-			suffix = fmt.Sprintf(" (and ...%s/go.mod does not exist)", r.pathMajor)
+			suffix = fmt.Sprintf(" (and ...%s/notgo.mod does not exist)", r.pathMajor)
 		}
 		if mpath1 == "" {
 			return "", "", nil, fmt.Errorf("%s is missing module path%s at revision %s", file1, suffix, rev)
@@ -759,16 +759,16 @@ func (r *codeRepo) findDir(version string) (rev, dir string, gomod []byte, err e
 	}
 
 	if r.codeDir == "" && (r.pathMajor == "" || strings.HasPrefix(r.pathMajor, ".")) {
-		// Implicit go.mod at root of repo OK for v0/v1 and for gopkg.in.
+		// Implicit notgo.mod at root of repo OK for v0/v1 and for gopkg.in.
 		return rev, "", nil, nil
 	}
 
-	// Implicit go.mod below root of repo or at v2+ disallowed.
+	// Implicit notgo.mod below root of repo or at v2+ disallowed.
 	// Be clear about possibility of using either location for v2+.
 	if file2 != "" {
-		return "", "", nil, fmt.Errorf("missing %s/go.mod and ...%s/go.mod at revision %s", r.pathPrefix, r.pathMajor, rev)
+		return "", "", nil, fmt.Errorf("missing %s/notgo.mod and ...%s/notgo.mod at revision %s", r.pathPrefix, r.pathMajor, rev)
 	}
-	return "", "", nil, fmt.Errorf("missing %s/go.mod at revision %s", r.pathPrefix, rev)
+	return "", "", nil, fmt.Errorf("missing %s/notgo.mod at revision %s", r.pathPrefix, rev)
 }
 
 // isMajor reports whether the versions allowed for mpath are compatible with
@@ -844,7 +844,7 @@ func (r *codeRepo) GoMod(version string) (data []byte, err error) {
 	if gomod != nil {
 		return gomod, nil
 	}
-	data, err = r.code.ReadFile(rev, path.Join(dir, "go.mod"), codehost.MaxGoMod)
+	data, err = r.code.ReadFile(rev, path.Join(dir, "notgo.mod"), codehost.MaxGoMod)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return r.legacyGoMod(rev, dir), nil
@@ -855,13 +855,13 @@ func (r *codeRepo) GoMod(version string) (data []byte, err error) {
 }
 
 func (r *codeRepo) legacyGoMod(rev, dir string) []byte {
-	// We used to try to build a go.mod reflecting pre-existing
+	// We used to try to build a notgo.mod reflecting pre-existing
 	// package management metadata files, but the conversion
 	// was inherently imperfect (because those files don't have
-	// exactly the same semantics as go.mod) and, when done
+	// exactly the same semantics as notgo.mod) and, when done
 	// for dependencies in the middle of a build, impossible to
 	// correct. So we stopped.
-	// Return a fake go.mod that simply declares the module path.
+	// Return a fake notgo.mod that simply declares the module path.
 	return []byte(fmt.Sprintf("module %s\n", modfile.AutoQuote(r.modPath)))
 }
 

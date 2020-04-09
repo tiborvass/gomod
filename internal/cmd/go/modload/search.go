@@ -87,7 +87,7 @@ func matchPackages(pattern string, tags map[string]bool, useStd bool, modules []
 			}
 			// Stop at module boundaries.
 			if (prune&pruneGoMod != 0) && path != root {
-				if fi, err := os.Stat(filepath.Join(path, "go.mod")); err == nil && !fi.IsDir() {
+				if fi, err := os.Stat(filepath.Join(path, "notgo.mod")); err == nil && !fi.IsDir() {
 					return filepath.SkipDir
 				}
 			}

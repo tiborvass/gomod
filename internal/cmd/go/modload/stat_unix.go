@@ -20,7 +20,7 @@ import (
 func hasWritePerm(path string, fi os.FileInfo) bool {
 	if os.Getuid() == 0 {
 		// The root user can access any file, but we still want to default to
-		// read-only mode if the go.mod file is marked as globally non-writable.
+		// read-only mode if the notgo.mod file is marked as globally non-writable.
 		// (If the user really intends not to be in readonly mode, they can
 		// pass -mod=mod explicitly.)
 		return fi.Mode()&0222 != 0

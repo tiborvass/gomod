@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// go mod graph
+// notgo.mod graph
 
 package modcmd
 
@@ -21,7 +21,7 @@ import (
 )
 
 var cmdGraph = &base.Command{
-	UsageLine: "go mod graph",
+	UsageLine: "notgo.mod graph",
 	Short:     "print module requirement graph",
 	Long: `
 Graph prints the module requirement graph (with replacements applied)
@@ -38,9 +38,9 @@ func init() {
 
 func runGraph(cmd *base.Command, args []string) {
 	if len(args) > 0 {
-		base.Fatalf("go mod graph: graph takes no arguments")
+		base.Fatalf("notgo.mod graph: graph takes no arguments")
 	}
-	// Checks go mod expected behavior
+	// Checks notgo.mod expected behavior
 	if !modload.Enabled() {
 		if cfg.Getenv("GO111MODULE") == "off" {
 			base.Fatalf("go: modules disabled by GO111MODULE=off; see 'go help modules'")

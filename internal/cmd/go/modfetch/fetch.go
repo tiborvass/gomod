@@ -378,7 +378,7 @@ func initGoSum() (bool, error) {
 	return true, nil
 }
 
-// emptyGoModHash is the hash of a 1-file tree containing a 0-length go.mod.
+// emptyGoModHash is the hash of a 1-file tree containing a 0-length notgo.mod.
 // A bug caused us to write these into go.sum files for non-modules.
 // We detect and remove them.
 const emptyGoModHash = "h1:G7mAYYxgmS0lVkHyy2hEOLQCFB0DlQFTMLWggykrydY="
@@ -444,22 +444,22 @@ func checkMod(mod module.Version) {
 	}
 }
 
-// goModSum returns the checksum for the go.mod contents.
+// goModSum returns the checksum for the notgo.mod contents.
 func goModSum(data []byte) (string, error) {
-	return dirhash.Hash1([]string{"go.mod"}, func(string) (io.ReadCloser, error) {
+	return dirhash.Hash1([]string{"notgo.mod"}, func(string) (io.ReadCloser, error) {
 		return ioutil.NopCloser(bytes.NewReader(data)), nil
 	})
 }
 
-// checkGoMod checks the given module's go.mod checksum;
-// data is the go.mod content.
+// checkGoMod checks the given module's notgo.mod checksum;
+// data is the notgo.mod content.
 func checkGoMod(path, version string, data []byte) error {
 	h, err := goModSum(data)
 	if err != nil {
-		return &module.ModuleError{Path: path, Version: version, Err: fmt.Errorf("verifying go.mod: %v", err)}
+		return &module.ModuleError{Path: path, Version: version, Err: fmt.Errorf("verifying notgo.mod: %v", err)}
 	}
 
-	return checkModSum(module.Version{Path: path, Version: version + "/go.mod"}, h)
+	return checkModSum(module.Version{Path: path, Version: version + "/notgo.mod"}, h)
 }
 
 // checkModSum checks that the recorded checksum for mod is h.
@@ -651,9 +651,9 @@ func TrimGoSum(keep map[module.Version]bool) {
 	}
 
 	for m := range goSum.m {
-		// If we're keeping x@v we also keep x@v/go.mod.
-		// Map x@v/go.mod back to x@v for the keep lookup.
-		noGoMod := module.Version{Path: m.Path, Version: strings.TrimSuffix(m.Version, "/go.mod")}
+		// If we're keeping x@v we also keep x@v/notgo.mod.
+		// Map x@v/notgo.mod back to x@v for the keep lookup.
+		noGoMod := module.Version{Path: m.Path, Version: strings.TrimSuffix(m.Version, "/notgo.mod")}
 		if !keep[m] && !keep[noGoMod] {
 			delete(goSum.m, m)
 			goSum.dirty = true
@@ -701,20 +701,20 @@ checking that the bits downloaded for a specific module version today
 match bits downloaded yesterday. This ensures repeatable builds
 and detects introduction of unexpected changes, malicious or not.
 
-In each module's root, alongside go.mod, the go command maintains
+In each module's root, alongside notgo.mod, the go command maintains
 a file named go.sum containing the cryptographic checksums of the
 module's dependencies.
 
 The form of each line in go.sum is three fields:
 
-	<module> <version>[/go.mod] <hash>
+	<module> <version>[/notgo.mod] <hash>
 
 Each known module version results in two lines in the go.sum file.
 The first line gives the hash of the module version's file tree.
-The second line appends "/go.mod" to the version and gives the hash
-of only the module version's (possibly synthesized) go.mod file.
-The go.mod-only hash allows downloading and authenticating a
-module version's go.mod file, which is needed to compute the
+The second line appends "/notgo.mod" to the version and gives the hash
+of only the module version's (possibly synthesized) notgo.mod file.
+The notgo.mod-only hash allows downloading and authenticating a
+module version's notgo.mod file, which is needed to compute the
 dependency graph, without also downloading all the module's source code.
 
 The hash begins with an algorithm prefix of the form "h<N>:".
@@ -726,7 +726,7 @@ The go command maintains a cache of downloaded packages and computes
 and records the cryptographic checksum of each package at download time.
 In normal operation, the go command checks the main module's go.sum file
 against these precomputed checksums instead of recomputing them on
-each command invocation. The 'go mod verify' command checks that
+each command invocation. The 'notgo.mod verify' command checks that
 the cached copies of module downloads still match both their recorded
 checksums and the entries in go.sum.
 

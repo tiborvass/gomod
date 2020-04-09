@@ -413,15 +413,15 @@ func Downgrade(target module.Version, reqs Reqs, downgrade ...module.Version) ([
 		}
 		list, err := reqs.Required(m)
 		if err != nil {
-			// If we can't load the requirements, we couldn't load the go.mod file.
+			// If we can't load the requirements, we couldn't load the notgo.mod file.
 			// There are a number of reasons this can happen, but this usually
 			// means an older version of the module had a missing or invalid
-			// go.mod file. For example, if example.com/mod released v2.0.0 before
-			// migrating to modules (v2.0.0+incompatible), then added a valid go.mod
+			// notgo.mod file. For example, if example.com/mod released v2.0.0 before
+			// migrating to modules (v2.0.0+incompatible), then added a valid notgo.mod
 			// in v2.0.1, downgrading from v2.0.1 would cause this error.
 			//
 			// TODO(golang.org/issue/31730, golang.org/issue/30134): if the error
-			// is transient (we couldn't download go.mod), return the error from
+			// is transient (we couldn't download notgo.mod), return the error from
 			// Downgrade. Currently, we can't tell what kind of error it is.
 			exclude(m)
 		}

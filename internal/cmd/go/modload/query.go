@@ -338,7 +338,7 @@ func filterVersions(path string, versions []string, ok func(module.Version) bool
 			if !strings.HasSuffix(v, "+incompatible") {
 				lastCompatible = v
 			} else if lastCompatible != "" {
-				// If the latest compatible version is allowed and has a go.mod file,
+				// If the latest compatible version is allowed and has a notgo.mod file,
 				// ignore any version with a higher (+incompatible) major version. (See
 				// https://golang.org/issue/34165.) Note that we even prefer a
 				// compatible pre-release over an incompatible release.
@@ -351,7 +351,7 @@ func filterVersions(path string, versions []string, ok func(module.Version) bool
 					break
 				}
 
-				// No acceptable compatible release has a go.mod file, so the versioning
+				// No acceptable compatible release has a notgo.mod file, so the versioning
 				// for the module might not be module-aware, and we should respect
 				// legacy major-version tags.
 				preferIncompatible = true
@@ -560,7 +560,7 @@ func queryPrefixModules(candidateModules []string, queryModule func(path string)
 					// errors for modules with shorter paths.
 
 					// golang.org/issue/34383 is a special case of this: if we have
-					// already found example.com/foo/v2@v2.0.0 with a matching go.mod
+					// already found example.com/foo/v2@v2.0.0 with a matching notgo.mod
 					// file, ignore the error from example.com/foo@v2.0.0.
 				} else {
 					err = r.err
@@ -662,6 +662,6 @@ func versionHasGoMod(m module.Version) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	fi, err := os.Stat(filepath.Join(root, "go.mod"))
+	fi, err := os.Stat(filepath.Join(root, "notgo.mod"))
 	return err == nil && !fi.IsDir(), nil
 }

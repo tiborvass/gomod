@@ -16,7 +16,7 @@ import (
 )
 
 var cmdWhy = &base.Command{
-	UsageLine: "go mod why [-m] [-vendor] packages...",
+	UsageLine: "notgo.mod why [-m] [-vendor] packages...",
 	Short:     "explain why packages or modules are needed",
 	Long: `
 Why shows a shortest path in the import graph from the main module to
@@ -38,7 +38,7 @@ parenthesized note indicating that fact.
 
 For example:
 
-	$ go mod why golang.org/x/text/language golang.org/x/text/encoding
+	$ notgo.mod why golang.org/x/text/language golang.org/x/text/encoding
 	# golang.org/x/text/language
 	rsc.io/quote
 	rsc.io/sampler
@@ -70,7 +70,7 @@ func runWhy(cmd *base.Command, args []string) {
 		listVersions := false
 		for _, arg := range args {
 			if strings.Contains(arg, "@") {
-				base.Fatalf("go mod why: module query not allowed")
+				base.Fatalf("notgo.mod why: module query not allowed")
 			}
 		}
 		mods := modload.ListModules(args, listU, listVersions)

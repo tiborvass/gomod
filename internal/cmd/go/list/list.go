@@ -211,7 +211,7 @@ applied to a Go struct, but now a Module struct:
         Main      bool         // is this the main module?
         Indirect  bool         // is this module only an indirect dependency of main module?
         Dir       string       // directory holding files for this module, if any
-        GoMod     string       // path to go.mod file used when loading this module, if any
+        GoMod     string       // path to notgo.mod file used when loading this module, if any
         GoVersion string       // go version used in module
         Error     *ModuleError // error loading module
     }
@@ -388,7 +388,7 @@ func runList(cmd *base.Command, args []string) {
 			base.Fatalf("go list -m: not using modules")
 		}
 
-		modload.InitMod() // Parses go.mod and sets cfg.BuildMod.
+		modload.InitMod() // Parses notgo.mod and sets cfg.BuildMod.
 		if cfg.BuildMod == "vendor" {
 			const actionDisabledFormat = "go list -m: can't %s using the vendor directory\n\t(Use -mod=mod or -mod=readonly to bypass.)"
 

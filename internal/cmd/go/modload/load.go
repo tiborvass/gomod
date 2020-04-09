@@ -340,7 +340,7 @@ func DirImportPath(dir string) string {
 	return "."
 }
 
-// LoadBuildList loads and returns the build list from go.mod.
+// LoadBuildList loads and returns the build list from notgo.mod.
 // The loading of the build list happens automatically in ImportPaths:
 // LoadBuildList need only be called if ImportPaths is not
 // (typically in commands that care about the module but
@@ -560,7 +560,7 @@ func Lookup(parentPath string, parentIsStd bool, path string) (dir, realPath str
 // Although most of the loading state is maintained in the loader struct,
 // one key piece - the build list - is a global, so that it can be modified
 // separate from the loading operation, such as during "go get"
-// upgrades/downgrades or in "go mod" operations.
+// upgrades/downgrades or in "notgo.mod" operations.
 // TODO(rsc): It might be nice to make the loader take and return
 // a buildList rather than hard-coding use of the global.
 type loader struct {
@@ -712,8 +712,8 @@ func (ld *loader) load(roots func() []string) {
 	}
 
 	// Mix in direct markings (really, lack of indirect markings)
-	// from go.mod, unless we scanned the whole module
-	// and can therefore be sure we know better than go.mod.
+	// from notgo.mod, unless we scanned the whole module
+	// and can therefore be sure we know better than notgo.mod.
 	if !ld.isALL && modFile != nil {
 		for _, r := range modFile.Require {
 			if !r.Indirect {
@@ -948,7 +948,7 @@ func (pkg *loadPkg) stackText() string {
 	return buf.String()
 }
 
-// why returns the text to use in "go mod why" output about the given package.
+// why returns the text to use in "notgo.mod why" output about the given package.
 // It is less ornate than the stackText but contains the same information.
 func (pkg *loadPkg) why() string {
 	var buf strings.Builder
@@ -968,7 +968,7 @@ func (pkg *loadPkg) why() string {
 	return buf.String()
 }
 
-// Why returns the "go mod why" output stanza for the given package,
+// Why returns the "notgo.mod why" output stanza for the given package,
 // without the leading # comment.
 // The package graph must have been loaded already, usually by LoadALL.
 // If there is no reason for the package to be in the current build,
@@ -993,7 +993,7 @@ func WhyDepth(path string) int {
 	return n
 }
 
-// Replacement returns the replacement for mod, if any, from go.mod.
+// Replacement returns the replacement for mod, if any, from notgo.mod.
 // If there is no replacement for mod, Replacement returns
 // a module.Version with Path == "".
 func Replacement(mod module.Version) module.Version {
@@ -1103,7 +1103,7 @@ func readVendorList() {
 					mod = module.Version{Path: f[1], Version: f[2]}
 					f = f[3:]
 				} else if f[2] == "=>" {
-					// A wildcard replacement found in the main module's go.mod file.
+					// A wildcard replacement found in the main module's notgo.mod file.
 					mod = module.Version{Path: f[1]}
 					f = f[2:]
 				} else {
@@ -1199,7 +1199,7 @@ func (r *mvsReqs) required(mod module.Version) ([]module.Version, error) {
 			if !filepath.IsAbs(dir) {
 				dir = filepath.Join(ModRoot(), dir)
 			}
-			gomod := filepath.Join(dir, "go.mod")
+			gomod := filepath.Join(dir, "notgo.mod")
 			data, err := ioutil.ReadFile(gomod)
 			if err != nil {
 				return nil, fmt.Errorf("parsing %s: %v", base.ShortPath(gomod), err)
@@ -1229,16 +1229,16 @@ func (r *mvsReqs) required(mod module.Version) ([]module.Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	f, err := modfile.ParseLax("go.mod", data, nil)
+	f, err := modfile.ParseLax("notgo.mod", data, nil)
 	if err != nil {
-		return nil, module.VersionError(mod, fmt.Errorf("parsing go.mod: %v", err))
+		return nil, module.VersionError(mod, fmt.Errorf("parsing notgo.mod: %v", err))
 	}
 
 	if f.Module == nil {
-		return nil, module.VersionError(mod, errors.New("parsing go.mod: missing module line"))
+		return nil, module.VersionError(mod, errors.New("parsing notgo.mod: missing module line"))
 	}
 	if mpath := f.Module.Mod.Path; mpath != origPath && mpath != mod.Path {
-		return nil, module.VersionError(mod, fmt.Errorf(`parsing go.mod:
+		return nil, module.VersionError(mod, fmt.Errorf(`parsing notgo.mod:
 	module declares its path as: %s
 	        but was required as: %s`, mpath, mod.Path))
 	}
